@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.study.learnmybatis.dao.DepartmentDao">
+
+    <resultMap id="dept" type="com.study.learnmybatis.domian.Department">
+        <id column="id" property="id"/>
+        <result column="dept_name" property="departmentName"/>
+    </resultMap>
+
+<!--    public Department getDeptById(Integer id); 字段名跟javabean的属性名不一致时，不resultMap自定义映射则无法封装 -->
+    <select id="getDeptById" resultMap="dept">
+        select * from tbl_dept where id=#{id};
+    </select>
+
+
+
+</mapper>

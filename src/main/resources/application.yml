@@ -1,0 +1,64 @@
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/mybatis?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true
+    #      8�汾������  url��߼���?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: 7589
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    filters: stat,wall
+    max-active: 12
+
+  devtools:
+    restart:
+      enabled: true #���ÿ����Ȳ���
+
+  thymeleaf:
+    cache: false
+    mode: HTML
+    prefix: classpath:/templates/
+    suffix: .html
+
+    druid:
+      aop-patterns: edu.gdlgxy.examinationsystem.*  #���SpringBean
+      filters: stat,wall     # �ײ㿪�����ܣ�stat��sql��أ���wall������ǽ��
+
+
+
+      web-stat-filter:  # ���web
+        enabled: true
+        urlPattern: /*
+        exclusions: '*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*'
+
+
+      filter:
+        stat:
+          slow-sql-millis: 1000
+          logSlowSql: true
+          enabled: true
+        wall:
+          enabled: true
+          config:
+            drop-table-allow: false
+
+  jdbc:
+    template:
+      query-timeout: 3
+
+# ����mybatis����
+mybatis:
+  #  config-location: classpath:mybatis/mybatis-config.xml  #ȫ�������ļ�λ��
+  mapper-locations: classpath:mapper/*.xml  #sqlӳ���ļ�λ��
+  configuration: #ָ��mybatisȫ�������ļ��е����������
+    map-underscore-to-camel-case: true
+
+#    ���Բ�дȫ�֣������ļ�������ȫ�������ļ������ö�����configuration�������м���(��config-location: classpath:mybatis/mybatis-config.xml��������г�ͻ)
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+
+
+
+

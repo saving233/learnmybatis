@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.study.learnmybatis.dao.EmployeeDao">
+
+    <resultMap id="emp" type="com.study.learnmybatis.domian.Employee">
+        <id column="id" property="id" />
+        <result column="last_name" property="lastName" />
+        <result column="gender" property="gender" />
+        <result column="email" property="email" />
+        <result column="d_id" property="department.id"/>
+        <result column="dept_name" property="department.departmentName"/>
+    </resultMap>
+
+<!--    Employee getEmpById(@Param("id")Integer id);-->
+    <select id="getEmpById" resultMap="emp">
+        select * from tbl_employee where id=#{id};
+    </select>
+
+<!--    void addEmp(Employee employee);-->
+    <insert id="addEmp" parameterType="com.study.learnmybatis.domian.Employee" useGeneratedKeys="true" keyProperty="id">
+        insert into tbl_employee(last_name,email,gender) values (#{lastName},#{email},#{gender});
+    </insert>
+
+    <insert id="insert" parameterType="com.study.learnmybatis.domian.Employee" useGeneratedKeys="true" keyProperty="id">
+        insert into tbl_employee(last_name,email,gender) values (#{lastName},#{email},#{gender});
+    </insert>
+
+<!--    void updateEmp(Employee employee);-->
+    <update id="updateEmp" parameterType="com.study.learnmybatis.domian.Employee">
+        update tbl_employee set last_name=#{lastName} , email=#{email} , gender=#{gender}
+        where
+        id=#{id};
+    </update>
+
+<!--    void deleteEmpById(Integer id);-->
+    <delete id="deleteEmpById" parameterType="employee">
+        delete from tbl_employee where id=#{id};
+    </delete>
+
+<!--    Employee getEmpByMap(Map<String, Object> map);-->
+    <select id="getEmpByMap" resultMap="emp">
+        select * from tbl_employee where id = #{id} and last_name=#{lastName};
+    </select>
+
+<!--    public List<Employee> getEmpsByLastNameLike(String str);-->
+    <select id="getEmpsByLastNameLike" resultMap="emp">
+        select * from tbl_employee where last_name like #{lastName};
+    </select>
+
+<!--    public Map<String, Employee> getEmpByLastNameLikeReturnMap(String lastName);-->
+    <select id="getEmpByLastNameLikeReturnMap" resultMap="emp">
+         select * from tbl_employee where last_name like #{lastName};
+    </select>
+
+<!--    public Map<String,Employee> getEmpByIdReturnMap(Integer id);-->
+    <select id="getEmpByIdReturnMap" resultType="map">
+        select * from tbl_employee where id = #{id};
+    </select>
+
+<!--    public Employee getEmpAndDept(Integer id);-->
+    <select id="getEmpAndDept" resultMap="emp">
+        SELECT *
+		FROM tbl_employee e, tbl_dept d
+		WHERE e.d_id=d.id AND e.id=#{id}
+    </select>
+
+
+<!--=====================================================================================================================-->
+    <resultMap id="emp2" type="com.study.learnmybatis.domian.Employee">
+        <id column="id" property="id" />
+        <result column="last_name" property="lastName" />
+        <result column="gender" property="gender" />
+        <result column="email" property="email" />
+        
+        <association property="department" javaType="com.study.learnmybatis.domian.Department">
+            <id column="id" property="id"/>
+            <result column="dept_name" property="departmentName"/>
+        </association>
+    </resultMap>
+    
+<!--    public Employee getEmpAndDept2(Integer id);-->
+    <select id="getEmpAndDept2" resultMap="emp2">
+         SELECT
+			e.id id,e.last_name last_name,e.gender gender,
+			e.d_id d_id, d.dept_name dept_name
+		FROM tbl_employee e, tbl_dept d
+		WHERE e.d_id=d.id AND e.id=#{id}
+    </select>
+
+    <select id="getEmpAndDept3"  resultMap="emp">
+            SELECT * FROM tbl_dept d,tbl_employee e
+                WHERE e.`d_id`=d.`id`
+                AND d.`dept_name`=#{departmentName};
+    </select>
+<!--=====================================================================================================================-->
+
+<!--  association分步查询  public Employee getEmpByIdStep(Integer id);-->
+    <resultMap id="emp3" type="com.study.learnmybatis.domian.Employee">
+        <id column="id" property="id" />
+        <result column="last_name" property="lastName" />
+        <result column="gender" property="gender" />
+        <result column="email" property="email" />
+
+        <association property="department"
+        select="com.study.learnmybatis.dao.DepartmentDao.getDeptById" column="id">
+        </association>
+    </resultMap>
+    <select id="getEmpByIdStep" resultMap="emp3">
+        select * from tbl_employee where id=#{id}
+    </select>
+<!--=====================================================================================================================-->
+
+
+<!--  带鉴别器  List<Employee> getEmpsWithDiscriminator();-->
+    <resultMap id="emp4" type="com.study.learnmybatis.domian.Employee">
+        <id column="id" property="id" />
+        <result column="last_name" property="lastName" />
+        <result column="gender" property="gender" />
+        <result column="email" property="email" />
+
+        <discriminator javaType="string" column="gender">
+            <case value="0" resultType="com.study.learnmybatis.domian.Employee">
+<!--                property：注入给员工中哪个属性-->
+<!--                select：发送哪一条sql语句-->
+<!--                javaType：把sql语句查询出的结果集，封装给哪个类的对象（可以省略）-->
+<!--                column：查询员工的结果集中，用哪个列的值作为条件去查询关联的对象-->
+<!--                column作为select查询条件的参数，但是这个条件一般都是外键-->
+                <association property="department"
+                select="com.study.learnmybatis.dao.DepartmentDao.getDeptById" column="d_id" fetchType="eager">
+                </association>
+            </case>
+            <case value="1" resultType="com.study.learnmybatis.domian.Employee">
+                <id column="id" property="id"/>
+                <result column="last_name" property="lastName"/>
+                <result column="last_name" property="email"/>
+                <result column="gender" property="gender"/>
+            </case>
+        </discriminator>
+    </resultMap>
+    <select id="getEmpsWithDiscriminator" resultMap="emp4">
+        select * from tbl_employee;
+    </select>
+<!--=========================================动态查询===============================-->
+
+<!--    List<Employee> getEmpsByConditionIf(Employee employee);-->
+    <select id="getEmpsByConditionIf" resultType="com.study.learnmybatis.domian.Employee">
+        select * from tbl_employee where
+        <if test="id != null">
+            id=#{id}
+        </if>
+        <if test="lastName!=null &amp;&amp; lastName!=&quot;&quot;">
+            and last_name=#{lastName}
+        </if>
+        <if test="gender==0 or gender==1">
+            and gender=#{gender}
+        </if>
+        <if test="email!=null and email.trim()!=&quot;&quot;">
+            and email=#{email}
+        </if>
+    </select>
+
+
+<!--    List<Employee> getEmpsByConditionIfWithWhere(Employee employee);-->
+    <select id="getEmpsByConditionIfWithWhere" resultType="com.study.learnmybatis.domian.Employee">
+        select * from tbl_employee
+        <where>
+        <if test="id != null">
+            id=#{id}
+        </if>
+        <if test="lastName!=null &amp;&amp; lastName!=&quot;&quot;">
+            and last_name=#{lastName}
+        </if>
+        <if test="gender==0 or gender==1">
+            and gender=#{gender}
+        </if>
+        <if test="email!=null and email.trim()!=&quot;&quot;">
+            and email=#{email}
+        </if>
+        </where>
+    </select>
+
+<!--    List<Employee> getEmpsByConditionTrim(Employee employee);  效果跟where标签一样-->
+    <select id="getEmpsByConditionTrim" resultMap="emp">
+        select * from tbl_employee
+        <trim prefix="where" prefixOverrides="and">
+<!--        <trim prefix="where" prefixOverrides="and" suffixOverrides="and">-->
+            <if test="id != null">
+                and id=#{id}
+            </if>
+            <if test="lastName!=null &amp;&amp; lastName!=&quot;&quot;">
+                and last_name=#{lastName}
+            </if>
+            <if test="gender==0 or gender==1">
+                and gender=#{gender}
+            </if>
+            <if test="email!=null and email.trim()!=&quot;&quot;">
+                and email=#{email}
+            </if>
+        </trim>
+    </select>
+
+
+<!--    List<Employee> getEmpsByConditionChoose(Employee employee);-->
+        <select id="getEmpsByConditionChoose" resultMap="emp">
+            select * from tbl_employee
+            <where>
+                <choose>
+                    <when test="id!=null">
+                        id=#{id}
+                    </when>
+                    <when test="lastName!=null">
+                        last_name=#{lastName}
+                    </when>
+                    <when test="email!=null">
+                        email=#{email}
+                    </when>
+                    <otherwise>
+                        gender=0
+                    </otherwise>
+                </choose>
+            </where>
+        </select>
+
+<!--=========================================更新===============================-->
+<!--    void dynamicUpdateEmp(Employee employee);-->
+        <update id="dynamicUpdateEmp">
+            update tbl_employee
+            <set>
+                <if test="lastName!=null">
+                    last_name=#{lastName},
+                </if>
+            </set>
+            <set>
+                <if test="email!=null">
+                  email=#{email},
+                </if>
+            </set>
+            <set>
+                <if test="gender!=null">
+                    gender=#{gender}
+                </if>
+            </set>
+            where id=#{id};
+        </update>
+
+<!--    void UpdateEmpWithTrim(Employee employee);-->
+        <update id="UpdateEmpWithTrim" >
+        update tbl_employee
+        <trim suffix="set" suffixOverrides=",">
+            <if test="lastName!=null">
+                last_name=#{lastName},
+            </if>
+            <if test="email!=null">
+                email=#{email},
+            </if>
+            <if test="gender!=null">
+                gender=#{gender}
+            </if>
+        </trim>
+        where id=#{id};
+    </update>
+
+<!--    List<Employee> getEmpsByConditionForeach(@Param("ids") List<Integer> ids);-->
+        <select id="getEmpsByConditionForeach" resultMap="emp">
+            select * from tbl_employee
+            <foreach collection="ids" item="item_id" separator=","
+                     open="where id in("
+                     close=")">
+                #{item_id}
+            </foreach>
+        </select>
+
+<!--    void addEmps(@Param("emps")List<Employee> emps);-->
+        <insert id="addEmps">
+            insert into tbl_employee(last_name,email,gender,d_id)
+            values
+            <foreach collection="emps" item="emp" separator=",">
+                (#{emp.lastName},#{emp.email},#{emp.gender},#{emp.department.id})
+            </foreach>
+        </insert>
+
+    <!-- 这种方式需要数据库连接属性allowMultiQueries=true；
+        这种分号分隔多个sql可以用于其他的批量操作（删除，修改） -->
+    <insert id="addEmps2">
+        <foreach collection="emps" item="emp" separator=";">
+            insert into tbl_employee(last_name,email,gender,d_id)
+            values(#{emp.lastName},#{emp.email},#{emp.gender},#{emp.department.id})
+        </foreach>
+    </insert>
+
+
+<!--    List<Employee> getEmpsTestInnerParameter(Employee employee);-->
+    <select id="getEmpsTestInnerParameter" resultMap="emp">
+
+        <!-- bind：可以将OGNL表达式的值绑定到一个变量中，方便后来引用这个变量的值 -->
+        <bind name="lastName" value="'%'+lastName+'%'"/>
+
+        <if test="_databaseId=='mysql'">
+            select * from tbl_employee
+            <if test="_parameter!=null">
+<!--此时_parameter内置参数中的值为接口中传入的person对象中的id、name、age的整体值，也就是说，不管接口中传入的多少数据，都整体的放在了_parameter内置参数中-->
+                where last_name = #{_parameter.lastName}
+            </if>
+        </if>
+    </select>
+
+
+<!--    抽取可重用片段-->
+    <sql id="insertRecord">
+        last_name,gender,email
+    </sql>
+    <insert id="insertToEmp" parameterType="com.study.learnmybatis.domian.Employee">
+        insert into tbl_employee(<include refid="insertRecord"></include>)
+        values (#{lastName},#{gender},#{email});
+    </insert>
+
+
+</mapper>
